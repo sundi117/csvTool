@@ -203,6 +203,7 @@ def transferConditions_gaoji(conditions):
     for condition in conditions:
         inputValue = condition.get('columnSelected')
         operatorType = condition.get('operatorType')
+        params = condition.get('params')
         if operatorType == '删除行':  # df.drop(['id'],axis=1,inplace=True)
             finalCondition = r'''  dfResult.drop([ '''
             sepsymbol = ','
@@ -218,9 +219,22 @@ def transferConditions_gaoji(conditions):
             print('finalCondition:%s' % finalCondition)
             finalConditions.append(finalCondition)
         elif operatorType == '增加行':
+            # 待补充
             pass
         elif operatorType == '去重':
-            pass
+            finalCondition = r'''  dfResult.drop_duplicates(subset=[ '''
+            sepsymbol = ','
+            if str(inputValue).find(',') == -1:
+                sepsymbol = '，'
+            valueList = str(inputValue).split(sepsymbol)
+            for index, iv in enumerate(valueList):
+                if (int(index) + 1) == len(valueList):
+                    finalCondition += r"'%s'" % (inputValue_dealer('', iv))
+                else:
+                    finalCondition += r"'%s'," % (inputValue_dealer('', iv))
+            finalCondition += r''' ],keep='%s',inplace=True)   ''' % ('first' if params == '1' else 'last')
+            print('finalCondition:%s' % finalCondition)
+            finalConditions.append(finalCondition)
 
     print("finalConditions:%s" % finalConditions)
     return finalConditions
@@ -279,10 +293,10 @@ def readFileColumnGo(from_path_root):
                 # print("文件路径：", filepath)
                 print("正在处理 ", filepath, " ,请稍后...")
                 try:
-                    df = pd.read_csv(from_path_root, encoding='utf-8', error_bad_lines=False, sep=',', low_memory=False,
+                    df = pd.read_csv(filepath, encoding='utf-8', error_bad_lines=False, sep=',', low_memory=False,
                                      index_col=False)
                 except UnicodeDecodeError as e:
-                    df = pd.read_csv(from_path_root, encoding='gbk', error_bad_lines=False, sep=',', low_memory=False,
+                    df = pd.read_csv(filepath, encoding='gbk', error_bad_lines=False, sep=',', low_memory=False,
                                      index_col=False)
                     encoding = 'gbk'
                 except Exception as e:
@@ -328,8 +342,8 @@ def deal_csv(from_path_root, to_path, condition_putong, conditions_gaoji, to_one
             # dfResult = df.drop_duplicates(subset=['TIME'], keep='first')['TIME']
             print('-' * 50 + "df" + '-' * 50)
             print(df.head())
-            print('-' * 50 + "dtypes" + '-' * 50)
-            print(colunmsTypes)
+            # print('-' * 50 + "dtypes" + '-' * 50)
+            # print(colunmsTypes)
 
             # 如果有普通功能
             if condition_putong:
@@ -375,7 +389,7 @@ def deal_csv(from_path_root, to_path, condition_putong, conditions_gaoji, to_one
                 # print("文件路径：", filepath)
                 print("正在处理 ", filepath, " ,请稍后...")
                 try:
-                    df = pd.read_csv(from_path_root, encoding=encoding, error_bad_lines=False, sep=',',
+                    df = pd.read_csv(filepath, encoding=encoding, error_bad_lines=False, sep=',',
                                      low_memory=False,
                                      index_col=False)
                 except Exception as e:
@@ -383,8 +397,8 @@ def deal_csv(from_path_root, to_path, condition_putong, conditions_gaoji, to_one
                 print('-' * 50 + "df" + '-' * 50)
                 print(df.head())
                 # dfResult = df[eval(condition_putong)]
-                print('-' * 50 + "dtypes" + '-' * 50)
-                print(colunmsTypes)
+                # print('-' * 50 + "dtypes" + '-' * 50)
+                # print(colunmsTypes)
 
                 # 如果有普通功能
                 if condition_putong:
