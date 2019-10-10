@@ -194,7 +194,7 @@ def transferConditions_putong(conditions):
 def transferConditions_gaoji(conditions):
     """
          处理conditions
-         conditions:[{"columnSelected":"JBYY, JDDS1","operatorType":"删除行"},
+         conditions:[{"columnSelected":"JBYY, JDDS1","operatorType":"删除列"},
                     {"columnSelected":"ZYJLX, ZZCS","operatorType":"去重"}]
         :return:
     """
@@ -204,7 +204,7 @@ def transferConditions_gaoji(conditions):
         inputValue = condition.get('columnSelected')
         operatorType = condition.get('operatorType')
         params = condition.get('params')
-        if operatorType == '删除行':  # df.drop(['id'],axis=1,inplace=True)
+        if operatorType == '删除列':  # df.drop(['id'],axis=1,inplace=True)
             finalCondition = r'''  dfResult.drop([ '''
             sepsymbol = ','
             if str(inputValue).find(',') == -1:
@@ -218,9 +218,10 @@ def transferConditions_gaoji(conditions):
             finalCondition += r''' ],axis=1,inplace=True )   '''
             print('finalCondition:%s' % finalCondition)
             finalConditions.append(finalCondition)
-        elif operatorType == '增加行':
-            # 待补充
-            pass
+        elif operatorType == '增加列':
+            finalCondition = r'''  dfResult['%s'] = '%s' ''' % (
+            inputValue_dealer('', inputValue), inputValue_dealer('', params))
+            finalConditions.append(finalCondition)
         elif operatorType == '去重':
             finalCondition = r'''  dfResult.drop_duplicates(subset=[ '''
             sepsymbol = ','

@@ -234,8 +234,8 @@
                     </div>
 
                     <select class="form-control operatorType">
-                        <option>删除行</option>
-                        <option>增加行</option>
+                        <option>删除列</option>
+                        <option>增加列</option>
                         <option>去重</option>
 
                     </select>
@@ -313,8 +313,8 @@
             var html = " <div class='form-group   form-inline condition  col-sm-12 '>";
             html += " <div class='checkbox'><label> <input type='checkbox' checked='checked'> </label></div>" +
                 "  <select class='form-control operatorType'>" +
-                "    <option>删除行</option>" +
-                "    <option>增加行</option>" +
+                "    <option>删除列</option>" +
+                "    <option>增加列</option>" +
                 "    <option>去重</option>" +
                 " </select> " +
                 " <select class=' selectpicker fileColumns ' multiple style='width:150px;height: 38px;'> " + optionHtml + "</select>  " +
@@ -323,6 +323,15 @@
                 " <span class='glyphicon glyphicon-remove' aria-hidden='true'></span></button>   </div>";
 
             return html;
+        }
+
+        var buildOptionHtml = function () {
+            optionHtml = ''
+            $(columns).each(function () {
+                optionHtml += ("<option>" + this + "</option>");
+            });
+            var sclHtml = " <select class=' selectpicker fileColumns ' multiple style='width:150px;height: 38px;'> " + optionHtml + "</select>  "
+            return sclHtml;
         }
 
 
@@ -444,9 +453,14 @@
             checkedMembers_gaoji.each(function () {
                 var $checkedMember = $(this)
                 var conditionOjb = {}
-                var columnSelected = $checkedMember.find('div.fileColumns button').attr('title')
                 var operatorType = $checkedMember.find('.operatorType').val()
-                var params = $checkedMember.find('.inputValue').val()
+                if (operatorType == '增加列') {
+                    var columnSelected = $checkedMember.find('div.fileColumns input').val()
+                    var params = $checkedMember.find('.inputValue:last').val()
+                } else {
+                    var columnSelected = $checkedMember.find('div.fileColumns button').attr('title')
+                    var params = $checkedMember.find('.inputValue').val()
+                }
 
                 conditionOjb["columnSelected"] = columnSelected
                 conditionOjb["operatorType"] = operatorType
@@ -510,10 +524,29 @@
                 $(this).next().prop('placeholder', '可输入多个条件数值（用逗号分隔），如 YCQ1938,YCQ1939,YCQ1940    ')
             }
             if ($(this).val() == '去重') {
-                // alert( $(this).next()[0].tagName )
-                // alert($(this).next().prop('placeholder'))
+                $(this).next().html(buildOptionHtml())
                 $input = $(this).next().next()
                 $input.prop('placeholder', '重复项取第一次的值，填1，取最后一次的值，填2 ')
+                $input[0].disabled = false
+                $("select.selectpicker.fileColumns").selectpicker('refresh');
+
+            }
+
+            if ($(this).val() == '删除列') {
+                $(this).next().html(buildOptionHtml())
+                $input = $(this).next().next()
+                $input.prop('placeholder', '删你所想 ')
+                $input[0].disabled = true
+                $("select.selectpicker.fileColumns").selectpicker('refresh');
+
+            }
+
+            if ($(this).val() == '增加列') {
+                // 把columnSelected 变成输入input
+                var zjlHtml = "<input type='text' class='form-control inputValue' placeholder='填写列名'  style='width:220px' />"
+                $(this).next().html(zjlHtml)
+                $input = $(this).next().next()
+                $input.prop('placeholder', '请在此设置新列的统一默认值 ')
                 $input[0].disabled = false
             }
 
