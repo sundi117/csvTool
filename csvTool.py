@@ -1,3 +1,5 @@
+import re
+
 import pandas as pd
 import os
 import time
@@ -219,8 +221,8 @@ def transferConditions_gaoji(conditions):
             print('finalCondition:%s' % finalCondition)
             finalConditions.append(finalCondition)
         elif operatorType == '增加列':
-            finalCondition = r'''  dfResult['%s'] = '%s' ''' % (
-            inputValue_dealer('', inputValue), inputValue_dealer('', params))
+            finalCondition = r'''dfResult['%s']='%s' ''' % (
+                inputValue_dealer('', inputValue), inputValue_dealer('', params))
             finalConditions.append(finalCondition)
         elif operatorType == '去重':
             finalCondition = r'''  dfResult.drop_duplicates(subset=[ '''
@@ -355,7 +357,12 @@ def deal_csv(from_path_root, to_path, condition_putong, conditions_gaoji, to_one
             # 如果有高级功能
             if conditions_gaoji:
                 for condition_gaoji in conditions_gaoji:
-                    eval(condition_gaoji)
+                    # 注意：前方高能巨坑！！！！！！！！！！！！！！！
+                    # 如果是这种赋值条件 dfResult['age']='32'，只能用exec的函数执行
+                    if re.findall(r"dfResult\[", condition_gaoji):
+                        exec(condition_gaoji)
+                    else:
+                        eval(condition_gaoji)
             else:
                 pass
 
