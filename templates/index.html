@@ -204,6 +204,7 @@
                         <option>含有(模糊)</option>
                         <option>大于</option>
                         <option>小于</option>
+                        <option>介于...之间</option>
                         <option>in</option>
                     </select>
                     <input type="text" class="form-control inputValue" placeholder="请输入条件数值" style="width:500px">
@@ -236,6 +237,7 @@
                     <select class="form-control operatorType">
                         <option>删除列</option>
                         <option>增加列</option>
+                        <option>修改列</option>
                         <option>去重</option>
 
                     </select>
@@ -294,6 +296,7 @@
                 "    <option>含有(模糊)</option>" +
                 "    <option>大于</option>" +
                 "    <option>小于</option>" +
+                "    <option>介于...之间</option>" +
                 "    <option>in</option>" +
 
                 " </select>  <input type='text' class='form-control inputValue'   placeholder='请输入条件数值'  style='width:500px'>  " +
@@ -315,6 +318,7 @@
                 "  <select class='form-control operatorType'>" +
                 "    <option>删除列</option>" +
                 "    <option>增加列</option>" +
+                "    <option>修改列</option>" +
                 "    <option>去重</option>" +
                 " </select> " +
                 " <select class=' selectpicker fileColumns ' multiple style='width:150px;height: 38px;'> " + optionHtml + "</select>  " +
@@ -332,6 +336,17 @@
             });
             var sclHtml = " <select class=' selectpicker fileColumns ' multiple style='width:150px;height: 38px;'> " + optionHtml + "</select>  "
             return sclHtml;
+        }
+
+        var buildOptionHtmlForModifyCol = function () {
+            mHtml = "  <select class='form-control operator'>" +
+                "    <option> + </option>" +
+                "    <option> - </option>" +
+                "    <option> * </option>" +
+                "    <option> / </option>" +
+                " </select> "
+
+            return mHtml;
         }
 
 
@@ -454,19 +469,24 @@
                 var $checkedMember = $(this)
                 var conditionOjb = {}
                 var operatorType = $checkedMember.find('.operatorType').val()
+                var columnSelected = ''
+                var params = ''
+
                 if (operatorType == '增加列') {
-                    var columnSelected = $checkedMember.find('div.fileColumns input').val()
-                    var params = $checkedMember.find('.inputValue:last').val()
+                    columnSelected = $checkedMember.find('div.fileColumns input').val()
+                    params = $checkedMember.find('.inputValue:last').val()
                 } else {
-                    var columnSelected = $checkedMember.find('div.fileColumns button').attr('title')
-                    var params = $checkedMember.find('.inputValue').val()
+                    columnSelected = $checkedMember.find('div.fileColumns button').attr('title')
+                    params = $checkedMember.find('.inputValue').val()
                 }
+
 
                 conditionOjb["columnSelected"] = columnSelected
                 conditionOjb["operatorType"] = operatorType
                 conditionOjb["params"] = params
 
                 conditions.gaoji.push(conditionOjb)
+
             })
 
             console.info("conditions:", conditions)
@@ -518,29 +538,34 @@
         }
 
         var changeOperatorTypeInput = function () {
-            if ($(this).val() == 'in') {
-                // alert( $(this).next()[0].tagName )
-                // alert($(this).next().prop('placeholder'))
-                $(this).next().prop('placeholder', '可输入多个条件数值（用逗号分隔），如 YCQ1938,YCQ1939,YCQ1940    ')
+
+            if (($(this).parent().parent().attr('id')) == 'putong') {
+                if ($(this).val() == 'in') {
+                    // alert( $(this).next()[0].tagName )
+                    // alert($(this).next().prop('placeholder'))
+                    $(this).next().prop('placeholder', '可输入多个条件数值（用逗号分隔），如 YCQ1938,YCQ1939,YCQ1940 ')
+                } else if ($(this).val() == '介于...之间') {
+                    $(this).next().prop('placeholder', '请输入最小值、最大值（以逗号分隔）。如 1，100 ')
+                } else {
+                    $(this).next().prop('placeholder', '请输入条件数值')
+                }
             }
+
+
             if ($(this).val() == '去重') {
                 $(this).next().html(buildOptionHtml())
                 $input = $(this).next().next()
                 $input.prop('placeholder', '重复项取第一次的值，填1，取最后一次的值，填2 ')
                 $input[0].disabled = false
                 $("select.selectpicker.fileColumns").selectpicker('refresh');
-
             }
-
             if ($(this).val() == '删除列') {
                 $(this).next().html(buildOptionHtml())
                 $input = $(this).next().next()
                 $input.prop('placeholder', '删你所想 ')
                 $input[0].disabled = true
                 $("select.selectpicker.fileColumns").selectpicker('refresh');
-
             }
-
             if ($(this).val() == '增加列') {
                 // 把columnSelected 变成输入input
                 var zjlHtml = "<input type='text' class='form-control inputValue' placeholder='填写列名'  style='width:220px' />"
@@ -549,9 +574,24 @@
                 $input.prop('placeholder', '请在此设置新列的统一默认值 ')
                 $input[0].disabled = false
             }
-
+            if ($(this).val() == '修改列') {
+                console.info("修改列：", $(this).next().html())
+                 console.info(buildOptionHtmlForModifyCol()    )
+                $(this).next().html(buildOptionHtmlForModifyCol())
+                $input = $(this).next().next()
+                $input.prop('placeholder', '填值 ')
+                $input[0].disabled = false
+                // $("select.selectpicker.fileColumns").selectpicker('refresh');
+            }
 
         }
+
+        var validateValues = function (operatorType) {
+            if (operatorType == '修改列') {
+            }
+
+        }
+
 
         // loading层
         var showLoading = function (loadText) {

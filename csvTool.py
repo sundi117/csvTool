@@ -163,6 +163,19 @@ def transferConditions_putong(conditions):
                         columnSelected, '==', inputValue_dealer(columnSelected, iv))
             print('conditionTemp:%s' % conditionTemp)
 
+        elif operatorType == '介于...之间':
+            sepsymbol = ','
+            if str(inputValue).find(',') == -1:
+                sepsymbol = '，'
+            inputValueList = str(inputValue).split(sepsymbol)
+            minTemp = inputValue_dealer(columnSelected, inputValueList[0])
+            maxTemp = inputValue_dealer(columnSelected, inputValueList[1])
+            minValue, maxValue = min(minTemp, maxTemp), max(minTemp, maxTemp)
+
+            conditionTemp = r"( ( df['%s'] > %s ) & ( df['%s'] < %s ) )" % (
+                columnSelected, minValue, columnSelected, maxValue)
+            print('conditionTemp:%s' % conditionTemp)
+
         elif operatorType == '等于':
             conditionTemp = r"(df['%s'] %s  %s ) " % (
                 columnSelected, '==', inputValue_dealer(columnSelected, inputValue))
@@ -358,13 +371,11 @@ def deal_csv(from_path_root, to_path, condition_putong, conditions_gaoji, to_one
             if conditions_gaoji:
                 for condition_gaoji in conditions_gaoji:
                     # 注意：前方高能巨坑！！！！！！！！！！！！！！！
-                    # 如果是这种赋值条件 dfResult['age']='32'，只能用exec的函数执行
+                    # 如果是这种赋值条件 dfResult['age']='32'，只能用exec的函数执行！！！
                     if re.findall(r"dfResult\[", condition_gaoji):
                         exec(condition_gaoji)
                     else:
                         eval(condition_gaoji)
-            else:
-                pass
 
             print('-' * 50 + "dfResult" + '-' * 50)
             print(dfResult.head())
@@ -417,9 +428,12 @@ def deal_csv(from_path_root, to_path, condition_putong, conditions_gaoji, to_one
                 # 如果有高级功能
                 if conditions_gaoji:
                     for condition_gaoji in conditions_gaoji:
-                        eval(condition_gaoji)
-                else:
-                    pass
+                        # 注意：前方高能巨坑！！！！！！！！！！！！！！！
+                        # 如果是这种赋值条件 dfResult['age']='32'，只能用exec的函数执行！！！
+                        if re.findall(r"dfResult\[", condition_gaoji):
+                            exec(condition_gaoji)
+                        else:
+                            eval(condition_gaoji)
 
                 print('-' * 50 + "dfResult" + '-' * 50)
                 print(dfResult.head())
@@ -437,6 +451,13 @@ def deal_csv(from_path_root, to_path, condition_putong, conditions_gaoji, to_one
 
         if to_one == 'true':
             resultPath = to_path + r"\result_all_%s.csv" % (timestr)
+            # 注意！！！
+            # 在to_one 模式下，如果条件中有高级功能的去重，多个文件分别去重合并后还需要一次总去重
+            if conditions_gaoji:
+                for condition_gaoji in conditions_gaoji:
+                    if condition_gaoji.find('dfResult.drop_duplicates') != -1:  # 如果有去重功能
+                        eval(condition_gaoji.replace('dfResult', 'dfAll'))
+
             dfAll.to_csv(resultPath, index=False, encoding=encoding)
         print(filepath + "  处理完毕！")
         print("文件输出在：" + resultPath)
